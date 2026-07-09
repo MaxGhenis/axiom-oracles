@@ -563,6 +563,7 @@ def test_us_pe_covered_programs_name_a_live_pe_suite():
         "oh-income-tax-liability",
         "va-income-tax-liability",
         "ut-income-tax-liability",
+        "ne-income-tax-liability",
         "al-tanf-ecps",
         "ga-tanf-ecps",
         "az-tanf-ecps",

@@ -48,7 +48,7 @@ VALIDATION_YEAR = 2026
 TAXSIM_YEAR = 2024  # pinned binary abandons 2026; latest available law year
 
 # TAXSIM state codes (not FIPS) from the adapter projection.
-_TAXSIM_STATE = {"CA": 5, "NY": 33, "IL": 14, "MA": 22, "OH": 36, "UT": 45, "VA": 47}
+_TAXSIM_STATE = {"CA": 5, "NY": 33, "IL": 14, "MA": 22, "OH": 36, "UT": 45, "VA": 47, "NE": 28}
 # PolicyEngine target per state. CA, IL, and OH use the before-refundable-credits
 # variable, the exact statutory analog of each core (the final ca_income_tax /
 # il_income_tax additionally net the refundable CalEITC/Young Child credit and
@@ -72,6 +72,11 @@ _PE_VAR = {
     # before-non-refundable variable nets the phased-out 59-10-1018 taxpayer
     # credit that this flat core excludes.
     "UT": "ut_income_tax_before_credits",
+    # Nebraska's before-credits variable is the pure 77-2715.03 four-bracket
+    # progressive tax on Nebraska taxable income (AGI less the 77-2716.01 standard
+    # deduction). The before-refundable variable nets the 77-2716.01 personal
+    # exemption credit (a post-tax nonrefundable credit) that this core excludes.
+    "NE": "ne_income_tax_before_credits",
 }
 # Ordered state list; new states append here so the grid, reports, and main loop
 # all pick them up. Derived from _TAXSIM_STATE insertion order.
@@ -236,6 +241,11 @@ _TOL = {
     "VA": (1.0, 0.0),
     # Utah is a single flat rate on the taxable base; exact match.
     "UT": (1.0, 0.0),
+    # Nebraska reproduces PolicyEngine to the cent (the residual is PolicyEngine's
+    # float32 rounding, under a tenth of a cent); a $1 band catches structural
+    # bracket errors without absorbing the TAXSIM rate-compression and indexation
+    # vintage.
+    "NE": (1.0, 0.0),
 }
 
 
