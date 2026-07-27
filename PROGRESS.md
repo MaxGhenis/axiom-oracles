@@ -645,9 +645,24 @@ residual), #229 (small-suite grounding).
   with `overview OK: 214 reports bundled`.
 - Confirmed the review worktree was clean before and after the read-only
   overview check.
+- Audited every factual statement in the target's round-3 and round-4 entries
+  against branch objects and the committed review ledgers at `800e4b63`,
+  `9ed26ef7`, and `7e8faebc`; no unsupported or incorrect statement remains.
+- Confirmed the round-3 review identity, served-overview result, two blocking
+  findings, tracked report path, intended external-report state, inaccurate
+  historical untracked wording, direct-child repair, and rewritten section.
+  The external campaign report still exists and is byte-identical to
+  `1fe6bbba:REPAIR-ROUND2-REPORT.md`, with SHA-256
+  `f461bb409cb65fffd1e8f91d3fbad76e467fefe399b0f2dd7b37d9a81f48e7c2`.
+- Confirmed the round-4 review identity, prohibited-path and whitespace
+  results, overview and thirteen-check results, requested ledger update, and
+  two-path repair explanation. Round 3 explicitly required both the report
+  deletion and ledger correction, and the round-5 report says not to re-raise
+  that intended two-path fix.
+- Confirmed the two statements rejected by round 5 are gone: the target no
+  longer attributes the `72718c96` final/current wording to `PROGRESS.md` and
+  no longer claims an unverifiable `git add` cause.
 
 ### Next
 
-- Verify every factual statement in the round-3 and round-4 entries against
-  branch history and the three specified committed review ledgers.
 - Write and commit the final verdict report, then close this ledger.
