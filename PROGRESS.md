@@ -483,13 +483,23 @@ residual), #229 (small-suite grounding).
 - `git diff --check origin/main...72718c96` exits 2 for trailing whitespace on
   two `WORKER-REPORT.md` lines, contrary to the untracked repair report's pass
   claim.
+- Independently loaded all five configs through the committed resolver and
+  obtained PolicyEngine 4.18.9 / US 1.767.3 / Core 3.30.3 on Python 3.13.
+  A real offline `uv run` in a writable temporary cache resolved and imported
+  that exact 100-package environment; seven pin/attestation tests pass.
+- The ordinary `uv` cache path failed sandbox initialization at
+  `$HOME/.cache/uv/sdists-v9/.git`; the writable-cache rerun succeeded without
+  network access.
+- Classified all 56 target paths versus `origin/main`: 41 are the requested
+  five-suite reports/dispositions/served artifacts and row/freshness mirrors;
+  the remaining 15 are the five required configs, three repair scripts, four
+  tests, one CI gate, and the two branch ledgers. No other suite artifact or
+  conformance registration changed.
 
 ### Next
 
-1. Independently resolve committed PolicyEngine versions.
-2. Re-run the requested TANF counterfactuals and qualifier screen.
-3. Complete exact diff-containment classification.
-4. Commit the final `REVIEW-REPORT.md` and close this ledger.
+1. Finish the live TANF, lone-minor, and qualifier replays.
+2. Commit the final `REVIEW-REPORT.md` and close this ledger.
 
 ---
 
