@@ -471,13 +471,24 @@ residual), #229 (small-suite grounding).
   chain. `generate_dashboard_overview.py --check` fails: the committed bundle
   has stale source sizes and stale embedded data for exactly the five repaired
   SNAP reports.
+- Confirmed `origin/main@9b889a27` is an ancestor of the target and
+  `git merge-tree --write-tree origin/main 72718c96` reproduces the target tree
+  exactly; the freshness re-merge is clean and its semantic `--check` passes.
+- Confirmed the `us-pe:snap` YAML registration and both generated detail rows
+  are byte-equivalent in all fields except the intended note text.
+- Reran the task-scoped unit set: 364 passed and 3 skipped.
+- Found the committed `WORKER-REPORT.md` was not repaired: it still attests
+  Core 3.28.0, cites the obsolete TANF artifact hash, and calls a six-row
+  minimum-benefit table exhaustive while omitting MA `ecps-2303`.
+- `git diff --check origin/main...72718c96` exits 2 for trailing whitespace on
+  two `WORKER-REPORT.md` lines, contrary to the untracked repair report's pass
+  claim.
 
 ### Next
 
 1. Independently resolve committed PolicyEngine versions.
 2. Re-run the requested TANF counterfactuals and qualifier screen.
-3. Verify freshness re-merge, exact diff containment, and unchanged row
-   registration.
+3. Complete exact diff-containment classification.
 4. Commit the final `REVIEW-REPORT.md` and close this ledger.
 
 ---
