@@ -597,7 +597,8 @@ residual), #229 (small-suite grounding).
 
 ### State
 
-- In progress; conditions 2 and 3 require `REQUEST-CHANGES`.
+- Complete; verdict is `REQUEST-CHANGES`.
+- Conditions 1 and 4 pass. Conditions 2 and 3 fail as written.
 - Target under review:
   `6fca6d194cb0e3a85e62884f683eb27e2def5dac`.
 - Review writes are confined to branch
@@ -648,7 +649,10 @@ residual), #229 (small-suite grounding).
   `REQUEST-CHANGES` at review commit `800e4b63` before target `6fca6d19` was
   created. The target ledger records neither that round-3 outcome nor the
   current head.
+- Wrote the complete scoped verdict and evidence to `REVIEW-REPORT.md` and
+  committed it at `cd6ada12`.
+- Confirmed no remote or GitHub write was made.
 
 ### Next
 
-- Write and commit `REVIEW-REPORT.md`, then record the final verdict here.
+- None.
