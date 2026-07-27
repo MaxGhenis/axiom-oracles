@@ -609,3 +609,34 @@ residual), #229 (small-suite grounding).
 
 - Open the PR from the current branch tip (this docs commit) and land it after
   a final confirmation pass.
+
+---
+
+## Final ledger confirmation — `a6b4d2eb` — 2026-07-27
+
+### State
+
+- In progress; verdict pending.
+- Target under review:
+  `a6b4d2eb64c08a4e5a95a08db2129db5e0254b05`.
+- Scope is limited to the factual support for the round-3 and round-4 entries,
+  the exact delta from `41512b26`, and the three requested read-only checks.
+- Review writes are confined to branch
+  `review/fed-parity-snap-residual-cleanup-a6b4d2eb` in the disposable
+  `.git/review-worktrees/snap-residual-cleanup-a6b4d2eb` worktree.
+- No remote or GitHub writes are authorized or planned.
+
+### Done
+
+- Created this disposable review worktree directly from the exact target.
+- Confirmed the target's sole parent is
+  `41512b26598858d47a306fe71f0df4e7360d9d41`.
+- Read the committed round-3, round-4, and round-5 review ledgers and reports.
+
+### Next
+
+- Verify every factual statement in the round-3 and round-4 entries against
+  branch history and the three specified committed review ledgers.
+- Confirm the exact one-commit, one-file docs delta from `41512b26`.
+- Run the requested whitespace, prohibited-path, and overview checks.
+- Write and commit the final verdict report, then close this ledger.
