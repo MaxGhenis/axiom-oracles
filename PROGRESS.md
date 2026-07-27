@@ -632,11 +632,22 @@ residual), #229 (small-suite grounding).
 - Confirmed the target's sole parent is
   `41512b26598858d47a306fe71f0df4e7360d9d41`.
 - Read the committed round-3, round-4, and round-5 review ledgers and reports.
+- Confirmed `a6b4d2eb` is exactly one direct commit above `41512b26`; its
+  docs-only subject is `docs: state only verifiable facts in the round-3
+  ledger entry`, and its exact delta is `M PROGRESS.md` with four insertions
+  and four deletions.
+- Confirmed `git diff --check` exits 0 for the review worktree, the direct
+  `41512b26..a6b4d2eb` delta, and the
+  `origin/main..a6b4d2eb` net PR diff.
+- Confirmed neither `REPAIR-ROUND2-REPORT` nor `WORKER-REPORT` appears in the
+  net PR path diff or the exact target tree.
+- Confirmed `python3 scripts/generate_dashboard_overview.py --check` exits 0
+  with `overview OK: 214 reports bundled`.
+- Confirmed the review worktree was clean before and after the read-only
+  overview check.
 
 ### Next
 
 - Verify every factual statement in the round-3 and round-4 entries against
   branch history and the three specified committed review ledgers.
-- Confirm the exact one-commit, one-file docs delta from `41512b26`.
-- Run the requested whitespace, prohibited-path, and overview checks.
 - Write and commit the final verdict report, then close this ledger.
