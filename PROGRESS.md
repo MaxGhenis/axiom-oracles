@@ -495,11 +495,22 @@ residual), #229 (small-suite grounding).
   the remaining 15 are the five required configs, three repair scripts, four
   tests, one CI gate, and the two branch ledgers. No other suite artifact or
   conformance registration changed.
+- Replayed ten TANF cases on the exact pinned runtime, one pass and one member
+  of the 26-case fail pool in each state. All ten baselines matched their
+  reports exactly; all five passes reproduced their YAML disposition, and all
+  five failures remained outside tolerance and unannotated.
+- Replayed AL `ecps-36459` and NC `ecps-27147`: both reproduce the #9157 lone-
+  minor signature, and explicitly setting K-12 false restores counted wages,
+  failed income tests, ineligibility, and zero SNAP.
+- Independently scanned the complete seven-row shared-eligibility near-minimum
+  universe, including MA `ecps-2303`; every row fails the exact Axiom-$24 and
+  PE-$23.84/$23.973597 conjunction, so zero rows qualify.
+- Independently verified the pinned Populace artifact SHA-256:
+  `16be6338f9d0b3c339883dae59949e995663b64cf145de6728b3dd0f916c5d5f`.
 
 ### Next
 
-1. Finish the live TANF, lone-minor, and qualifier replays.
-2. Commit the final `REVIEW-REPORT.md` and close this ledger.
+1. Commit the final `REVIEW-REPORT.md` and close this ledger.
 
 ---
 
