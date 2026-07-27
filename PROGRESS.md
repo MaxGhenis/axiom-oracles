@@ -597,8 +597,7 @@ residual), #229 (small-suite grounding).
 
 ### State
 
-- In progress; condition 3 currently requires `REQUEST-CHANGES`, pending the
-  remaining scoped checks.
+- In progress; conditions 2 and 3 require `REQUEST-CHANGES`.
 - Target under review:
   `6fca6d194cb0e3a85e62884f683eb27e2def5dac`.
 - Review writes are confined to branch
@@ -635,9 +634,21 @@ residual), #229 (small-suite grounding).
   burn-down 4 series / 49 points.
 - Confirmed the review worktree was clean before and after the read-only check
   battery.
+- Confirmed the external campaign report exists at the exact path newly named
+  by the target and is byte-identical to
+  `1fe6bbba:REPAIR-ROUND2-REPORT.md`. Its contents support the target's audit
+  description.
+- Corroborated the changed round-2 claims against review commit `09e88efd` and
+  the changed overview/worker-report claims against round-3 review commit
+  `800e4b63`; the identities, blockers, 214 bundled reports, 656 rows,
+  `23/83/71/106/41`, US 1.767.3 / Core 3.30.3, and stale-worker removal are
+  accurate.
+- Found condition 2 is not fully true: the target's final `Next` says round-3
+  confirmation is still pending, but round 3 completed with
+  `REQUEST-CHANGES` at review commit `800e4b63` before target `6fca6d19` was
+  created. The target ledger records neither that round-3 outcome nor the
+  current head.
 
 ### Next
 
-- Audit every changed `PROGRESS.md` claim against Git history and the round-2
-  and round-3 review ledgers.
 - Write and commit `REVIEW-REPORT.md`, then record the final verdict here.
