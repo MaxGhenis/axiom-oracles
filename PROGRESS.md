@@ -616,7 +616,7 @@ residual), #229 (small-suite grounding).
 
 ### State
 
-- In progress; verdict pending.
+- Complete; verdict is `APPROVE`.
 - Target under review:
   `a6b4d2eb64c08a4e5a95a08db2129db5e0254b05`.
 - Scope is limited to the factual support for the round-3 and round-4 entries,
@@ -624,7 +624,7 @@ residual), #229 (small-suite grounding).
 - Review writes are confined to branch
   `review/fed-parity-snap-residual-cleanup-a6b4d2eb` in the disposable
   `.git/review-worktrees/snap-residual-cleanup-a6b4d2eb` worktree.
-- No remote or GitHub writes are authorized or planned.
+- No remote or GitHub reads or writes were performed.
 
 ### Done
 
@@ -662,7 +662,9 @@ residual), #229 (small-suite grounding).
 - Confirmed the two statements rejected by round 5 are gone: the target no
   longer attributes the `72718c96` final/current wording to `PROGRESS.md` and
   no longer claims an unverifiable `git add` cause.
+- Wrote and committed the complete scoped verdict to `REVIEW-REPORT.md` at
+  `c95ac5e9`.
 
 ### Next
 
-- Write and commit the final verdict report, then close this ledger.
+- None.
