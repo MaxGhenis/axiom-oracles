@@ -625,10 +625,19 @@ residual), #229 (small-suite grounding).
   than `PROGRESS.md` only.
 - Confirmed `git diff --check` exits 0 for both
   `origin/main..6fca6d19` and `1fe6bbba..6fca6d19`.
+- Ran the complete 13-command generated-chain `--check` battery successfully:
+  83 disposition files; served cases 5 suites / 656 rows / 332 annotated /
+  0 silent; served dispositions 5 suites / 119 entries / exact YAML parity;
+  current grids and boundary suggestions; affected map 163 suites / 172
+  edges; vacuous/freshness 136 configs / 213 suites / 24 surfaces; dashboard
+  overview 214 reports; conformance universe and composition checks;
+  scoreboard 4 jurisdictions / 3 conformant; ratchet no regression; and
+  burn-down 4 series / 49 points.
+- Confirmed the review worktree was clean before and after the read-only check
+  battery.
 
 ### Next
 
 - Audit every changed `PROGRESS.md` claim against Git history and the round-2
   and round-3 review ledgers.
-- Run whitespace, dashboard-overview, and complete generated-chain checks.
 - Write and commit `REVIEW-REPORT.md`, then record the final verdict here.
