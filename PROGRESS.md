@@ -590,3 +590,34 @@ residual), #229 (small-suite grounding).
 ### Next
 
 - Round-3 confirmation of the served-overview regeneration, then open the PR.
+
+---
+
+## Round-4 confirmation ledger — `6fca6d19`
+
+### State
+
+- In progress; verdict pending the four scoped confirmation checks.
+- Target under review:
+  `6fca6d194cb0e3a85e62884f683eb27e2def5dac`.
+- Review writes are confined to branch
+  `review/fed-parity-snap-residual-cleanup-6fca6d19` in the disposable
+  `.git/review-worktrees/snap-residual-cleanup-6fca6d19` worktree.
+- No remote or GitHub writes are authorized or planned.
+
+### Done
+
+- Created this disposable review worktree directly from exact target
+  `6fca6d194cb0e3a85e62884f683eb27e2def5dac`.
+- Confirmed the target's sole parent is round-3 target
+  `1fe6bbba90dbf320ed154d77eff7b22ead26731a`.
+- Read the round-3 review report at review commit
+  `800e4b630bfc87165e89e682c6abbeb87e7a20c6`.
+
+### Next
+
+- Verify the net-PR report paths and exact one-commit docs delta.
+- Audit every changed `PROGRESS.md` claim against Git history and the round-2
+  and round-3 review ledgers.
+- Run whitespace, dashboard-overview, and complete generated-chain checks.
+- Write and commit `REVIEW-REPORT.md`, then record the final verdict here.
