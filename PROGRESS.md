@@ -597,7 +597,8 @@ residual), #229 (small-suite grounding).
 
 ### State
 
-- In progress; verdict pending the four scoped confirmation checks.
+- In progress; condition 3 currently requires `REQUEST-CHANGES`, pending the
+  remaining scoped checks.
 - Target under review:
   `6fca6d194cb0e3a85e62884f683eb27e2def5dac`.
 - Review writes are confined to branch
@@ -613,10 +614,20 @@ residual), #229 (small-suite grounding).
   `1fe6bbba90dbf320ed154d77eff7b22ead26731a`.
 - Read the round-3 review report at review commit
   `800e4b630bfc87165e89e682c6abbeb87e7a20c6`.
+- Confirmed neither `REPAIR-ROUND2-REPORT.md` nor `WORKER-REPORT.md` appears in
+  `git diff --name-only origin/main..6fca6d19`; neither path exists in the
+  target tree.
+- Confirmed the target is exactly one direct commit above `1fe6bbba`, with the
+  docs-only subject `docs: correct SNAP cleanup ledger and untrack the repair
+  report`.
+- Found condition 3 is not true under exact Git path semantics: that commit
+  touches two paths, `M PROGRESS.md` and `D REPAIR-ROUND2-REPORT.md`, rather
+  than `PROGRESS.md` only.
+- Confirmed `git diff --check` exits 0 for both
+  `origin/main..6fca6d19` and `1fe6bbba..6fca6d19`.
 
 ### Next
 
-- Verify the net-PR report paths and exact one-commit docs delta.
 - Audit every changed `PROGRESS.md` claim against Git history and the round-2
   and round-3 review ledgers.
 - Run whitespace, dashboard-overview, and complete generated-chain checks.
