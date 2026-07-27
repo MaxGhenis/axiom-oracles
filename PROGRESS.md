@@ -454,22 +454,31 @@ residual), #229 (small-suite grounding).
 - Review branch: `review/fed-parity-snap-residual-cleanup-72718c96`
 - Scope: independently verify the claimed round-1 repairs plus the requested
   counterfactual, writer-chain, merge-containment, and row-registration checks.
-- Status: in progress
+- Status: in progress; one blocking generated-writer drift found
 
 ### Done
 
 - Created this disposable review worktree at the exact requested head.
 - Preserved the branch's existing repair ledger and separated this blind-review
   ledger from it.
+- Read the round-1 report and untracked round-2 repair report in full.
+- Independently reconciled the five canonical reports, compact served chunks,
+  YAML dispositions, and served explanation JSON: 656 mismatch rows, 332
+  annotations, 119 YAML/served entries, zero silent classifications, and all
+  138 categorical rollback rows physically unannotated.
+- Ran the complete CI writer-check set. Thirteen checks pass, including both
+  served emitters and the reported disposition/grid/map/freshness/scoreboard
+  chain. `generate_dashboard_overview.py --check` fails: the committed bundle
+  has stale source sizes and stale embedded data for exactly the five repaired
+  SNAP reports.
 
 ### Next
 
-1. Read the round-1 report and round-2 repair evidence.
-2. Independently resolve committed PolicyEngine versions.
-3. Reconcile served case-explorer rows, annotations, and dispositions.
-4. Re-run the requested TANF counterfactuals and qualifier screen.
-5. Run every relevant writer in `--check` mode and verify merge containment.
-6. Commit the final `REVIEW-REPORT.md` and close this ledger.
+1. Independently resolve committed PolicyEngine versions.
+2. Re-run the requested TANF counterfactuals and qualifier screen.
+3. Verify freshness re-merge, exact diff containment, and unchanged row
+   registration.
+4. Commit the final `REVIEW-REPORT.md` and close this ledger.
 
 ---
 
