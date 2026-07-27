@@ -454,7 +454,7 @@ residual), #229 (small-suite grounding).
 - Review branch: `review/fed-parity-snap-residual-cleanup-72718c96`
 - Scope: independently verify the claimed round-1 repairs plus the requested
   counterfactual, writer-chain, merge-containment, and row-registration checks.
-- Status: in progress; one blocking generated-writer drift found
+- Status: complete; verdict is request changes
 
 ### Done
 
@@ -507,10 +507,11 @@ residual), #229 (small-suite grounding).
   PE-$23.84/$23.973597 conjunction, so zero rows qualify.
 - Independently verified the pinned Populace artifact SHA-256:
   `16be6338f9d0b3c339883dae59949e995663b64cf145de6728b3dd0f916c5d5f`.
+- Wrote the final evidence and required changes to `REVIEW-REPORT.md`.
 
 ### Next
 
-1. Commit the final `REVIEW-REPORT.md` and close this ledger.
+- None.
 
 ---
 
