@@ -4,8 +4,8 @@
 
 - Branch: `autogo/executable-producer`, fresh worktree from cached
   `origin/main` at `819f370b`.
-- Phase: pinned release contract committed; producer implementation in
-  progress.
+- Phase: governed producer and standalone receipt validator implemented;
+  certificate integration in progress.
 - Network: the initial fetch failed because `github.com` could not be resolved;
   the worktree therefore uses the locally cached `origin/main`.
 - Scope guard: add a new sign-only workflow and standalone receipt
@@ -27,10 +27,17 @@
   manifest, exact legal-id request, and golden output bindings.
 - Established the fail-closed bootstrap: the workflow-SHA allowlist is empty
   and no receipt is fabricated in this PR.
+- Added the single-job, manually dispatched producer workflow. It checks out
+  without persisted credentials, downloads only the pinned public engine and
+  artifact releases, verifies their hashes, runs the exact golden request, and
+  uploads an attested receipt.
+- Added strict receipt validation for release membership, hash-bound fixtures,
+  typed inputs and outputs, the exact nine-command stranger path, zero exits,
+  UTC timestamp, `main` workflow provenance, and the separately governed
+  workflow-SHA allowlist.
 
 ## Next
 
-- Implement the deterministic producer and its new workflow.
 - Port `scripts/certify.py` from the parked branch and replace executable
   attestation with fail-closed computed receipt verification.
 - Add required mutants, run focused/full checks, update this ledger, push if
