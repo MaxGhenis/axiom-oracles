@@ -4,7 +4,8 @@
 
 - Branch: `autogo/executable-producer`, fresh worktree from cached
   `origin/main` at `819f370b`.
-- Phase: contract discovery before implementation.
+- Phase: pinned release contract committed; producer implementation in
+  progress.
 - Network: the initial fetch failed because `github.com` could not be resolved;
   the worktree therefore uses the locally cached `origin/main`.
 - Scope guard: add a new sign-only workflow and standalone receipt
@@ -18,11 +19,17 @@
   worktree/branch.
 - Started read-only review of the certified-node contract, parked certificate
   consumer, release pins, and stranger-path parity fixtures.
+- Resolved the intended certified-node contract on
+  `ops` `origin/launch/certified-nodes` (the cached `origin/main` does not yet
+  contain it).
+- Pinned all four `v0.1.1` engine release archives to their full published
+  SHA-256 values and pinned the CO SNAP artifact release, artifact, release
+  manifest, exact legal-id request, and golden output bindings.
+- Established the fail-closed bootstrap: the workflow-SHA allowlist is empty
+  and no receipt is fabricated in this PR.
 
 ## Next
 
-- Freeze the receipt/provenance contract from the existing certified-node and
-  parity fixtures.
 - Implement the deterministic producer and its new workflow.
 - Port `scripts/certify.py` from the parked branch and replace executable
   attestation with fail-closed computed receipt verification.
