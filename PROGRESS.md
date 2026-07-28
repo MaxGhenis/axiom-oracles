@@ -1,3 +1,36 @@
+# PROGRESS — executable producer for the autogo harness
+
+## State
+
+- Branch: `autogo/executable-producer`, fresh worktree from cached
+  `origin/main` at `819f370b`.
+- Phase: contract discovery before implementation.
+- Network: the initial fetch failed because `github.com` could not be resolved;
+  the worktree therefore uses the locally cached `origin/main`.
+- Scope guard: add a new sign-only workflow and standalone receipt
+  producer/consumer; do not modify existing workflows, toolchain, pins, or
+  CODEOWNERS.
+
+## Done
+
+- Read the closure-sprint encoder discipline and task brief.
+- Confirmed the source checkout was clean and created the required fresh
+  worktree/branch.
+- Started read-only review of the certified-node contract, parked certificate
+  consumer, release pins, and stranger-path parity fixtures.
+
+## Next
+
+- Freeze the receipt/provenance contract from the existing certified-node and
+  parity fixtures.
+- Implement the deterministic producer and its new workflow.
+- Port `scripts/certify.py` from the parked branch and replace executable
+  attestation with fail-closed computed receipt verification.
+- Add required mutants, run focused/full checks, update this ledger, push if
+  connectivity returns, and open the requested draft PR.
+
+---
+
 # PROGRESS — us-pe reconciliation (drive `unexplained_total` 23,138 → 0)
 
 Predecessor: **#224** stood up the us-pe conformance universe (measurement only,
