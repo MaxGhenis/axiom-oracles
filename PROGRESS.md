@@ -104,6 +104,82 @@
 - Confirmed the requested local branch/worktree already contained stale,
   incomplete task work; preserved it untouched for read-only review.
 - Created this fresh worktree from the latest locally available `origin/main`.
+- Read the generated-only certified-node contract, the exact ops stranger-path
+  fixture and output bindings, the release/publication machinery, and the
+  parked certificate implementation.
+- Ported the coherent exercise-census/program-certificate baseline from
+  `program-certificate` without importing either parked evidence-validator
+  branch (#378/#379).
+- Regenerated the census and certificate against this worktree's current main
+  data. The expected pre-producer certificate remains attested and red.
+- Pinned the full `v0.1.1` release archive checksums, artifact release manifest
+  and content hash, byte-identical ops golden request/output bindings, committed
+  receipt path, and an initially empty governed workflow-SHA allowlist.
+- Added the governed workflow and its only producer path: anonymous release
+  downloads, checksum checks, archive extraction, version check, published
+  manifest binding, artifact hash check, real engine execution, golden-value
+  comparison, receipt emission, signing, and artifact upload.
+- Replaced the hand-carried executable attestation with standalone, fail-closed
+  receipt validation in `scripts/certify.py`; missing evidence now produces a
+  stable computed-false verdict.
+- Added constructed receipt and producer tests for checksum, golden-output,
+  workflow-provenance, workflow-allowlist, dev-engine, command, input, timestamp,
+  and failure-cleanup mutants. Focused result: 61 passed.
+- Ran the full repository suite: 2,365 passed and 70 skipped. The sole failure
+  was the dashboard loader-equivalence test because its `npx esbuild` subprocess
+  attempted a blocked npm download in this fresh worktree; the cached esbuild
+  binary remains available for an equivalent direct check.
+- Independent receipt and workflow reviews reproduced a release-blocking gap:
+  workflow provenance was only self-asserted in the JSON while the generated
+  Sigstore bundle was discarded. A hand-authored receipt that copied an
+  allowlisted workflow SHA could therefore pass.
+- Read the final local `axiom-encode#1192` notary design. Its load-bearing
+  boundary is a secretless deterministic execution job followed by a signing
+  job that runs no candidate code, with cryptographic authentication required
+  at consumption.
+- Independent review also found that producer output parsing coerces numeric
+  strings and floats to integers. That masks output-type disagreement and must
+  be replaced by exact type-and-value comparison.
+- Replaced numeric coercion with exact released-engine schema, JSON type, and
+  pinned-value checks. Added mutants for numeric strings, floats, scientific
+  notation, booleans masquerading as integers, and the wrong typed-value kind.
+- Sealed the public producer entry point: `produce()` and `main()` accept no
+  repository, manifest, environment, engine, or artifact parameters. Tests use
+  private constant monkeypatching rather than a production escape hatch.
+- Reran the producer suite after those repairs: 46 passed.
+- Audited the apparent ops golden-fixture contradiction. The committed fixture
+  on ops `origin/main` has stale `_provenance` prose, but contains the later SSN
+  and relation repair; the ops repair branch records that the released pair
+  returns the pinned `478 / 226 / holds` tuple. The later minimal audited fixture
+  has not landed on ops main and is therefore not silently substituted here.
+- Split the workflow into a permission-empty execution job and an isolated
+  OIDC signing job that runs no repository or engine code. The execution job
+  fetches the public main commit anonymously; the signing job re-checks the
+  immutable receipt before signing its exact bytes.
+- Retained the Sigstore bundle beside the receipt and pinned a public-good
+  trusted root, its raw SHA-256, the immutable GitHub repository ID, workflow
+  identity, workflow/source commits, event/ref, and run ID/attempt.
+- Made `scripts/certify.py` authenticate the bundle offline through
+  `gh attestation verify`, then independently re-check the verified certificate
+  fields, hosted-runner identity, transparency timestamp, signed receipt digest,
+  release/checksum membership, fixture bytes, commands, and golden values.
+- Added adversarial cases for a copied allowlisted SHA without a bundle,
+  malformed bundle, post-signature receipt mutation, wrong repository/workflow/
+  digest/ref certificate fields, mutated trusted root, and parsed-object byte
+  bypass. Added a full-certificate test proving authenticated evidence flips
+  only the executable premise and removes its blocker mechanically.
+- Expanded the maintainer handoff with exact artifact, verification, immutable
+  copy, allowlist, regeneration, and check commands. No verdict is hand-edited.
+- A second adversarial pass caught that `gh` treats `--cert-identity` and
+  `--signer-workflow` as mutually exclusive. Removed the redundant workflow
+  flag, retained the stronger exact certificate identity, and added a smoke
+  test that sends the production flag set through the real installed CLI
+  parser so mocks cannot hide this failure class.
+- Reran all focused executable-receipt tests after the authentication repair:
+  84 passed.
+- Reran the full repository suite: 2,387 passed and 70 skipped. Its sole
+  failure remains the environment-only `npx esbuild` network lookup; no
+  task-related test failed.
 
 ### Next
 
