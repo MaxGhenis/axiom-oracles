@@ -93,6 +93,9 @@
   `origin/main` at `2a1660d` because the network cannot currently resolve
   `github.com`.
 - Intended publication ref: `autogo/executable-producer`.
+- Phase: implementation, trust-boundary repair, validation, and independent
+  re-review complete; direct Git publication is blocked by DNS and the
+  authenticated connector fallback is pending.
 - Scope: add a deterministic, sign-only CI producer for executable receipts and
   standalone receipt consumption by the certificate harness.
 - Existing workflows, toolchain files, dependency pins, and CODEOWNERS are
@@ -180,13 +183,26 @@
 - Reran the full repository suite: 2,387 passed and 70 skipped. Its sole
   failure remains the environment-only `npx esbuild` network lookup; no
   task-related test failed.
+- Ran the loader test's exact bundle-and-compare sequence with the cached
+  esbuild binary: `EQUIVALENT: true`, with zero legacy leftovers.
+- Completed three independent adversarial, workflow-governance, and certificate
+  integration reviews. All approved the repaired boundary with no viable
+  receipt, bundle, certificate, or integration bypass.
+- Strengthened the real-`gh` smoke test so it must reach bundle parsing, not
+  merely avoid one known mutually-exclusive-flag error. Focused result remains
+  84 passed.
+- Passed certificate and census regeneration checks, actionlint, Ruff,
+  targeted Python compilation, `git diff --check`, and cached wheel/sdist
+  builds.
+- Wrote and committed `FINAL-REPORT.md` with the design, schema, test evidence,
+  and maintainer handoff.
+- Attempted both a remote refresh and the exact non-force push to
+  `autogo/executable-producer`; both failed because `github.com` could not be
+  resolved. Confirmed through the GitHub connector that no branch with that
+  name exists.
 
 ### Next
 
-- Inspect certified-node shape, parked `program-certificate` consumption,
-  stranger-path parity fixtures, release publication, and test conventions.
-- Define the release manifest, receipt schema/output path, producer workflow,
-  and fail-closed validation boundary.
-- Implement producer and certifier tests, including all required mutants.
-- Run focused and repository-level checks, review the diff, update this ledger,
-  and publish a draft PR if network access becomes available.
+- Attempt connector-based publication of the exact committed tree and open the
+  requested draft PR. If connector writes are unavailable, hand off the local
+  commit and the exact push/PR instructions to a maintainer.
