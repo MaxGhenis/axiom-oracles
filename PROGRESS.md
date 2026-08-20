@@ -211,3 +211,47 @@
 - A maintainer with GitHub network/write access publishes the exact committed
   tree and opens the documented draft PR; after review and landing, perform the
   evidence-pair and allowlist handoff documented above.
+
+## Executable tier reconciliation — 2026-08-20
+
+### State
+
+- Branch: `autogo/executable-producer-rebuild`; PR #461 remains open, draft,
+  and unmerged.
+- Rebased onto `origin/main` at
+  `dd4ec472acd711c6481c381c20bcce034f3ced6b`.
+- Phase: rebase and consumer mapping complete; tier schema, documentation,
+  validator policy, mutants, regeneration, and publication remain.
+- Output report: `FINAL-REPORT.md`.
+
+### Done
+
+- Attempted an explicit `git fetch`; terminal DNS could not resolve GitHub.
+  The shared repository's `origin/main` was independently refreshed to the
+  2026-08-20 commit above, and that exact local object is the rebase base.
+- Preserved current main's multi-program `scripts/certify.py`, DK/NZ/tariff
+  computed-producer machinery, generated census, and generated certificates.
+- Dropped only the PR's obsolete July census/certificate baseline commits;
+  replayed its release contract, permission-empty execution plus isolated OIDC
+  signing workflow, sealed producer, Sigstore authentication, and adversarial
+  tests.
+- Mapped the shared receipt consumers. Current main accepts producer-specific
+  executable receipts without a central tier policy; PR #427's parallel
+  `certify_nodes.py` expects the stronger published-artifact/released-binary
+  contract and must coordinate through the shared schema file only.
+- Verified the governed artifact registries contain no published DK program
+  artifact: live `rulespec-us` has no DK `programs/` entry; live `rulespec-dk`
+  has neither `programs/` nor `artifacts/` and has no publication workflow; the
+  archived registry contains only `uk/`. DK's current compile-from-source and
+  ten-case replay is therefore honestly `source_reproduction` today.
+
+### Next
+
+- Add the shared tier-discriminated receipt schema and require a top-level
+  `tier` of `source_reproduction` or `release_receipt`.
+- Migrate DK and CO receipts/producers and make `scripts/certify.py` enforce
+  registry-owned `required_tier` policy without weakening producer validators.
+- Add the requested tier/checksum mutants, write `docs/executable-tiers.md`,
+  regenerate certificates, run focused and full tests, update this ledger and
+  `FINAL-REPORT.md`, force-with-lease push the rebased branch, and update PR
+  #461's description without merging.
