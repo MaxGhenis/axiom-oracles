@@ -15,7 +15,11 @@ from typing import Any
 import pytest
 
 import axiom_oracles.executable_receipt as executable_receipt
-from axiom_oracles.executable_receipt import RECEIPT_SCHEMA
+from axiom_oracles.executable_receipt_schema import (
+    RECEIPT_SCHEMA,
+    RELEASE_RECEIPT,
+    SOURCE_REPRODUCTION,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CERTIFY_PATH = REPO_ROOT / "scripts/certify.py"
@@ -148,6 +152,7 @@ def _write_valid_receipt(root: Path) -> Path:
     ]
     receipt = {
         "schema": RECEIPT_SCHEMA,
+        "tier": RELEASE_RECEIPT,
         "program": manifest["program"],
         "engine": {
             "repository": release["repository"],
@@ -270,7 +275,42 @@ def _verdict(
 ) -> tuple[dict, dict | None]:
     certify = _load_certify()
     monkeypatch.setattr(certify, "REPO_ROOT", root)
-    return certify._executable_verdict(executable_spec)
+    evidence: list[dict] = []
+    verdict = certify._producer_executable_verdict(
+        "us-co/snap",
+        {"computed": {"executable": executable_spec}},
+        evidence,
+    )
+    assert verdict is not None
+    return verdict, evidence[0] if evidence else None
+
+
+def test_source_tier_policy_is_applied_without_reclassifying_legacy_receipts():
+    certify = _load_certify()
+    dk_evidence: list[dict] = []
+
+    dk = certify._producer_executable_verdict(
+        "dk/boerne-og-ungeydelse",
+        certify.PROGRAMS["dk/boerne-og-ungeydelse"],
+        dk_evidence,
+    )
+
+    assert dk is not None
+    assert dk["value"] is True
+    assert dk["tier"] == SOURCE_REPRODUCTION
+    assert dk_evidence[-1]["tier"] == SOURCE_REPRODUCTION
+
+    for program in ("us/tariff-duty", "nz/income-tax"):
+        legacy_evidence: list[dict] = []
+        legacy = certify._producer_executable_verdict(
+            program,
+            certify.PROGRAMS[program],
+            legacy_evidence,
+        )
+        assert legacy is not None
+        assert legacy["value"] is True
+        assert "tier" not in legacy
+        assert "tier" not in legacy_evidence[-1]
 
 
 def test_certificate_executable_fails_closed_without_committed_receipt(
@@ -279,7 +319,7 @@ def test_certificate_executable_fails_closed_without_committed_receipt(
 ):
     certify = _load_certify()
     executable_spec = copy.deepcopy(
-        certify.PROGRAMS["us-co/snap"]["executable"]
+        certify.PROGRAMS["us-co/snap"]["computed"]["executable"]
     )
 
     verdict, evidence = _verdict(
@@ -289,6 +329,8 @@ def test_certificate_executable_fails_closed_without_committed_receipt(
     )
 
     assert verdict["mode"] == "computed"
+    assert verdict["required_tier"] == RELEASE_RECEIPT
+    assert "tier" not in verdict
     assert verdict["value"] is False
     assert verdict["receipt_sha256"] is None
     assert verdict["attestation_sha256"] is None
@@ -299,6 +341,15 @@ def test_certificate_executable_fails_closed_without_committed_receipt(
     assert "evidence" not in verdict
     assert evidence is None
 
+    certificate = certify.build_certificate(
+        "us-co/snap",
+        certify.PROGRAMS["us-co/snap"],
+    )
+    assert any(
+        blocker == "executable: receipt: file does not exist"
+        for blocker in certificate["blockers"]
+    )
+
 
 def test_allowlisted_receipt_holds_only_for_certificate_owned_golden_values(
     certificate_root: Path,
@@ -308,7 +359,7 @@ def test_allowlisted_receipt_holds_only_for_certificate_owned_golden_values(
     _install_attestation_verifier(monkeypatch, certificate_root)
     certify = _load_certify()
     executable_spec = copy.deepcopy(
-        certify.PROGRAMS["us-co/snap"]["executable"]
+        certify.PROGRAMS["us-co/snap"]["computed"]["executable"]
     )
 
     verdict, evidence = _verdict(
@@ -318,14 +369,18 @@ def test_allowlisted_receipt_holds_only_for_certificate_owned_golden_values(
     )
 
     assert verdict["mode"] == "computed"
+    assert verdict["required_tier"] == RELEASE_RECEIPT
+    assert verdict["tier"] == RELEASE_RECEIPT
     assert verdict["value"] is True
     assert verdict["failures"] == []
     assert verdict["receipt_sha256"] is not None
     assert verdict["attestation_sha256"] is not None
     assert verdict["evidence"]["workflow"]["sha"] == WORKFLOW_SHA
     assert evidence == {
-        "claim": "executable",
+        "claim": "executable:us-co/snap",
         "mode": "computed",
+        "required_tier": RELEASE_RECEIPT,
+        "tier": RELEASE_RECEIPT,
         "artifact": "certificates/executable/us-co-snap/receipt.json",
         "sha256": verdict["receipt_sha256"],
         "attestation": (
@@ -351,6 +406,66 @@ def test_allowlisted_receipt_holds_only_for_certificate_owned_golden_values(
     assert mismatched_verdict["receipt_sha256"] is None
     assert "evidence" not in mismatched_verdict
     assert mismatched_evidence is None
+
+
+def test_source_reproduction_receipt_cannot_satisfy_release_policy(
+    certificate_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    source_receipt = (
+        REPO_ROOT / "conformance/executable/dk-boerne-og-ungeydelse.json"
+    )
+    receipt_path = (
+        certificate_root / EXECUTABLE_CERTIFICATES / "us-co-snap/receipt.json"
+    )
+    shutil.copy2(source_receipt, receipt_path)
+    certify = _load_certify()
+    executable_spec = copy.deepcopy(
+        certify.PROGRAMS["us-co/snap"]["computed"]["executable"]
+    )
+
+    verdict, evidence = _verdict(
+        monkeypatch,
+        certificate_root,
+        executable_spec,
+    )
+
+    assert verdict["value"] is False
+    assert any(
+        "does not satisfy required tier 'release_receipt'" in failure
+        for failure in verdict["failures"]
+    )
+    assert evidence is not None
+    assert evidence["accepted"] is False
+    assert evidence["required_tier"] == RELEASE_RECEIPT
+    assert "tier" not in evidence
+
+
+def test_release_receipt_without_tier_is_rejected(
+    certificate_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    receipt_path = _write_valid_receipt(certificate_root)
+    receipt = json.loads(receipt_path.read_text())
+    receipt.pop("tier")
+    receipt_path.write_text(json.dumps(receipt, indent=2) + "\n")
+    certify = _load_certify()
+    executable_spec = copy.deepcopy(
+        certify.PROGRAMS["us-co/snap"]["computed"]["executable"]
+    )
+
+    verdict, evidence = _verdict(
+        monkeypatch,
+        certificate_root,
+        executable_spec,
+    )
+
+    assert verdict["value"] is False
+    assert "receipt: missing required key 'tier'" in verdict["failures"]
+    assert evidence is not None
+    assert evidence["accepted"] is False
+    assert evidence["required_tier"] == RELEASE_RECEIPT
+    assert "tier" not in evidence
 
 
 def test_full_certificate_autogo_consumes_authenticated_receipt(
@@ -385,8 +500,14 @@ def test_full_certificate_autogo_consumes_authenticated_receipt(
         blocker.startswith("executable:") for blocker in certificate["blockers"]
     )
     executable_evidence = [
-        item for item in certificate["evidence"] if item["claim"] == "executable"
+        item
+        for item in certificate["evidence"]
+        if item["claim"] == "executable:us-co/snap"
     ]
     assert len(executable_evidence) == 1
     assert executable_evidence[0]["accepted"] is True
+    assert executable_evidence[0]["required_tier"] == RELEASE_RECEIPT
+    assert executable_evidence[0]["tier"] == RELEASE_RECEIPT
+    assert certificate["verdicts"]["executable"]["required_tier"] == RELEASE_RECEIPT
+    assert certificate["verdicts"]["executable"]["tier"] == RELEASE_RECEIPT
     assert certificate["verdicts"]["closed"]["mode"] == "attested"

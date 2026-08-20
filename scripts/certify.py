@@ -60,6 +60,15 @@ from axiom_oracles.comparison.dispositions import (  # noqa: E402
     validate_dispositions,
 )
 from axiom_oracles.evidence import validate_suite_evidence  # noqa: E402
+from axiom_oracles.executable_receipt import (  # noqa: E402
+    validate_executable_receipt,
+)
+from axiom_oracles.executable_receipt_schema import (  # noqa: E402
+    RELEASE_RECEIPT,
+    SOURCE_REPRODUCTION,
+    ReceiptSchemaError,
+    validate_receipt_envelope,
+)
 
 DATA_DIR = REPO_ROOT / "dashboard" / "public" / "data"
 CENSUS_PATH = REPO_ROOT / "conformance" / "exercise-census.json"
@@ -110,23 +119,21 @@ PROGRAMS: dict[str, dict] = {
                 "source_commits": ["ee4bcfe6aa9b", "968e9e2805e2"],
                 "status": "prototype",
             },
+        },
+        "computed": {
             "executable": {
-                "value": {
-                    "tuple": "engine v0.1.1 x program-artifacts-59a10dab866e",
-                    "loads_and_runs": True,
-                    "golden_values_reproduce": True,
-                    "detail": "stranger-path rc=0: snap_eligible=holds, gated "
-                    "snap_allotment=478, snap_net_income=226 (the corrected "
-                    "statutory figure — the prior certified 226.50 was the "
-                    "un-rounded value; 7 CFR 273.10(e)(1)(ii)(A)). Parity "
-                    "local leg PASS; BOM execution.golden_values PASS. "
-                    "Cross-surface still red: the hosted API returns the "
-                    "un-rounded 226.5 (axiom-api#115).",
+                "contract": RELEASE_RECEIPT,
+                "required_tier": RELEASE_RECEIPT,
+                "artifact": "certificates/executable/us-co-snap/receipt.json",
+                "manifest": "certificates/executable/us-co-snap/manifest.json",
+                "golden_input_sha256": (
+                    "8cbf093601f94a8f5a4517aeb27a4851439776d9d16933785c540839f4655dc3"
+                ),
+                "expected_outputs": {
+                    "snap_benefit_amount": 478,
+                    "snap_net_income": 226,
+                    "snap_eligible": "holds",
                 },
-                "source": "TheAxiomFoundation/ops launch-readiness/parity/"
-                "fixtures/GOLDEN-HOUSEHOLD.md (ops#6)",
-                "source_commit": "9f680b7",
-                "status": "attested_pass",
             },
         },
     },
@@ -173,6 +180,7 @@ PROGRAMS: dict[str, dict] = {
             "executable": {
                 "artifact": ("conformance/executable/dk-boerne-og-ungeydelse.json"),
                 "producer": "scripts/executable_reproduction.py",
+                "required_tier": SOURCE_REPRODUCTION,
             },
         },
         "attested": {},
@@ -1199,6 +1207,109 @@ def _producer_closed_verdict(
     }
 
 
+def _release_receipt_verdict(
+    program: str,
+    config: dict,
+    evidence: list[dict],
+) -> dict:
+    """Compute release-tier executability from authenticated receipt bytes.
+
+    The program registry owns the required tier and the golden expectations.
+    The receipt cannot promote its own tier, replace the manifest-selected
+    receipt path, or override either golden pin.
+    """
+
+    manifest_ref = config.get("manifest")
+    manifest_path = _repo_artifact_path(
+        manifest_ref,
+        label=f"{program} executable release manifest",
+    )
+    required_tier = config.get("required_tier")
+    expected_outputs = config.get("expected_outputs")
+    consumer_failures: list[str] = []
+    if type(expected_outputs) is not dict:
+        consumer_failures.append(
+            "certificate expected_outputs must be a JSON object"
+        )
+    validation = validate_executable_receipt(
+        repo_root=REPO_ROOT,
+        manifest_path=manifest_path,
+        expected_outputs=expected_outputs,
+        required_tier=required_tier,
+    )
+    failures = [*consumer_failures, *validation.failures]
+    manifest_sha256 = sha256_of(manifest_path) if manifest_path.is_file() else None
+    receipt_ref = str(config.get("artifact") or "")
+    attestation_ref: str | None = None
+
+    try:
+        manifest = _load(manifest_path)
+        declared_receipt = manifest.get("receipt_path")
+        if isinstance(declared_receipt, str) and declared_receipt:
+            if declared_receipt != receipt_ref:
+                failures.append(
+                    "certificate receipt path disagrees with the executable manifest"
+                )
+            receipt_ref = declared_receipt
+        declared_attestation = (manifest.get("attestation") or {}).get("path")
+        if isinstance(declared_attestation, str) and declared_attestation:
+            attestation_ref = declared_attestation
+        manifest_input_sha = (manifest.get("golden") or {}).get("input_sha256")
+        if manifest_input_sha != config.get("golden_input_sha256"):
+            failures.append(
+                "certificate golden input SHA-256 disagrees with the "
+                "executable manifest"
+            )
+    except (OSError, UnicodeError, json.JSONDecodeError, TypeError, AttributeError):
+        # The validator already reports malformed or missing manifest evidence.
+        pass
+
+    validated_tier = (
+        validation.evidence.get("tier")
+        if isinstance(validation.evidence, dict)
+        else None
+    )
+    if validation.valid and validated_tier != required_tier:
+        failures.append(
+            "validator accepted release evidence without the required tier"
+        )
+    holds = validation.valid and not failures
+    verdict = {
+        "mode": "computed",
+        "status": "computed_pass" if holds else "computed_fail",
+        "value": holds,
+        "required_tier": required_tier,
+        "receipt": receipt_ref,
+        "receipt_sha256": validation.receipt_sha256,
+        "attestation": attestation_ref,
+        "attestation_sha256": validation.attestation_sha256,
+        "manifest": manifest_ref,
+        "manifest_sha256": manifest_sha256,
+        "golden_input_sha256": config.get("golden_input_sha256"),
+        "expected_outputs": expected_outputs,
+        "failures": failures,
+    }
+    if holds:
+        verdict["evidence"] = validation.evidence
+        verdict["tier"] = validated_tier
+
+    if validation.receipt_sha256:
+        evidence_row = {
+            "claim": f"executable:{program}",
+            "mode": "computed",
+            "required_tier": required_tier,
+            "artifact": receipt_ref,
+            "sha256": validation.receipt_sha256,
+            "attestation": attestation_ref,
+            "attestation_sha256": validation.attestation_sha256,
+            "accepted": holds,
+        }
+        if holds:
+            evidence_row["tier"] = validated_tier
+        evidence.append(evidence_row)
+    return verdict
+
+
 def _producer_executable_verdict(
     program: str,
     spec: dict,
@@ -1217,6 +1328,8 @@ def _producer_executable_verdict(
     config = (spec.get("computed") or {}).get("executable")
     if not isinstance(config, dict):
         return None
+    if config.get("contract") == RELEASE_RECEIPT:
+        return _release_receipt_verdict(program, config, evidence)
     artifact_ref = config.get("artifact")
     artifact_path = _repo_artifact_path(
         artifact_ref,
@@ -1231,6 +1344,20 @@ def _producer_executable_verdict(
         raise ValueError(
             f"{artifact_ref} is not readable executable JSON: {exc}"
         ) from exc
+    required_tier = config.get("required_tier")
+    receipt_tier: str | None = None
+    if required_tier is not None:
+        try:
+            receipt_tier = validate_receipt_envelope(
+                document,
+                required_tier=required_tier,
+                repo_root=REPO_ROOT,
+                label=str(artifact_ref),
+            )
+        except ReceiptSchemaError as exc:
+            raise ValueError(
+                f"{artifact_ref} failed executable tier validation: {exc}"
+            ) from exc
     producer = _producer_module(str(config.get("producer") or ""))
     try:
         summary = producer.validate_artifact(document, repo_root=REPO_ROOT)
@@ -1271,17 +1398,18 @@ def _producer_executable_verdict(
     value = scoped.get("executable")
     if not isinstance(value, bool):
         raise ValueError(f"{artifact_ref} validator returned no executable boolean")
-    evidence.append(
-        {
-            "claim": f"executable:{program}",
-            "mode": "computed",
-            "artifact": str(artifact_ref),
-            "sha256": sha256_of(artifact_path),
-            "verification": "producer_artifact_validation",
-        }
-    )
+    evidence_row = {
+        "claim": f"executable:{program}",
+        "mode": "computed",
+        "artifact": str(artifact_ref),
+        "sha256": sha256_of(artifact_path),
+        "verification": "producer_artifact_validation",
+    }
+    if receipt_tier is not None:
+        evidence_row["tier"] = receipt_tier
+    evidence.append(evidence_row)
     if programs is not None:
-        return {
+        verdict = {
             "mode": "computed",
             "status": "computed_pass" if value else "computed_fail",
             "value": value,
@@ -1298,7 +1426,10 @@ def _producer_executable_verdict(
             "transcript": document.get("transcript"),
             "summary": scoped,
         }
-    return {
+        if receipt_tier is not None:
+            verdict["tier"] = receipt_tier
+        return verdict
+    verdict = {
         "mode": "computed",
         "value": value,
         "status": "computed_pass" if value else "computed_fail",
@@ -1319,6 +1450,9 @@ def _producer_executable_verdict(
             if isinstance(row, dict)
         ],
     }
+    if receipt_tier is not None:
+        verdict["tier"] = receipt_tier
+    return verdict
 
 
 def _closed_verdict(
@@ -1953,6 +2087,19 @@ def build_certificate(
     executable_block = _executable_verdict(
         program, spec, legs, evidence, verify_producer=verify_producers
     )
+    executable_config = (spec.get("computed") or {}).get("executable")
+    if (
+        isinstance(executable_config, dict)
+        and executable_config.get("contract") == RELEASE_RECEIPT
+        and executable_block.get("value") is not True
+    ):
+        failures = executable_block.get("failures")
+        detail = (
+            "; ".join(str(failure) for failure in failures)
+            if isinstance(failures, list) and failures
+            else "release receipt did not validate"
+        )
+        blockers.append(f"executable: {detail}")
     scope = None
     scope_suite = spec.get("scope_from_suite")
     if scope_suite is not None:

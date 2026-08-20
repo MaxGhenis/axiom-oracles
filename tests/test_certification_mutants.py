@@ -856,6 +856,12 @@ def test_registry_mode_cannot_override_derived_emitted_mode(
 
     certify = _load("certify")
     spec = copy.deepcopy(certify.PROGRAMS["us-co/snap"])
+    if premise == "executable":
+        # Colorado now has a computed release-receipt consumer. Remove that
+        # verifier only for this legacy-registry mutant so the test still
+        # proves that status/mode strings cannot manufacture computed evidence.
+        spec["computed"].pop("executable")
+        spec["attested"]["executable"] = {"value": True}
     spec["attested"][premise].update(
         status=status,
         mode=registry_mode,

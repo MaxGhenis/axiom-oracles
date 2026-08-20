@@ -220,9 +220,9 @@
   and unmerged.
 - Rebased onto `origin/main` at
   `dd4ec472acd711c6481c381c20bcce034f3ced6b`.
-- Phase: rebase, registry verification, tier definitions, shared schema, and
-  both producer migrations complete; certifier policy, regeneration, full
-  validation, and publication remain.
+- Phase: rebase, registry verification, tier definitions, shared schema, both
+  producer migrations, and certifier tier policy complete; regeneration, full
+  validation, report, and publication remain.
 - Output report: `FINAL-REPORT.md`.
 
 ### Done
@@ -271,12 +271,24 @@
   anti-downgrade mutants alongside the existing wrong-engine-checksum mutant.
   The release producer/validator battery passes: 87 tests; actionlint, Ruff,
   Python compilation, schema-pin comparison, and whitespace checks pass.
+- Replaced CO SNAP's attested executable prose with a computed
+  `release_receipt` consumer. The program registry independently owns the
+  tier, receipt/manifest paths, golden-input hash, and exact expected outputs;
+  missing or invalid authenticated evidence adds an executable blocker.
+- Made DK's registry require `source_reproduction`, retaining the deep DK
+  producer validation, while leaving the NZ and tariff legacy producer paths
+  unchanged. Accepted tier is emitted only after validation; rejected release
+  evidence records the required policy without falsely labeling its tier.
+- Added certifier integration coverage for DK/legacy dispatch, missing release
+  evidence, a real source receipt at a release-required consumer, absent tier,
+  certificate-owned golden values, and a fully authenticated receipt. Six
+  focused tests pass; the 210-test certification-mutant battery has one
+  expected generated-certificate drift pending regeneration and no logic
+  failure.
 
 ### Next
 
-- Make `scripts/certify.py` enforce registry-owned `required_tier` policy
-  without weakening producer validators.
-- Add the requested tier/checksum mutants, write `docs/executable-tiers.md`,
-  regenerate certificates, run focused and full tests, update this ledger and
-  `FINAL-REPORT.md`, force-with-lease push the rebased branch, and update PR
-  #461's description without merging.
+- Regenerate certificates, rerun the certification-mutant battery and all
+  canonical/focused/full checks, update this ledger and `FINAL-REPORT.md`,
+  force-with-lease push the rebased branch, and update PR #461's description
+  without merging.
