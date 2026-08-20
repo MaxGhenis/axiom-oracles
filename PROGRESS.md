@@ -220,8 +220,9 @@
   and unmerged.
 - Rebased onto `origin/main` at
   `dd4ec472acd711c6481c381c20bcce034f3ced6b`.
-- Phase: implementation and certificate regeneration complete; the full test
-  battery, final report, push, and PR description update remain.
+- Phase: implementation, certificate regeneration, validation, and final
+  report complete; guarded branch publication and PR description update
+  remain.
 - Output report: `FINAL-REPORT.md`.
 
 ### Done
@@ -291,9 +292,23 @@
   honestly false because no receipt/bundle/allowlist evidence pair is
   committed; the stable blocker is `executable: receipt: file does not exist`.
   The 210-test certification-mutant battery now passes after regeneration.
+- Passed the consolidated 106-test tier battery plus certificate/census
+  freshness, Ruff, Python compilation, actionlint, schema-pin, JSON, and
+  whitespace checks.
+- Ran the complete repository suite: 2,940 passed and 73 skipped. Its two
+  unrelated environment/optional-dependency failures are on files byte-equal
+  to main: `npx` could not resolve npm to fetch esbuild, and globally installed
+  `policyengine-uk 2.75.3` lacks `council_tax_reduction`. The cached esbuild
+  path passed the exact loader-equivalence check (`EQUIVALENT: true`, zero
+  leftovers).
+- Rewrote `FINAL-REPORT.md` with the tier definitions, DK registry result,
+  shared schema and digest, fail-closed boundary, mutant mapping, generated
+  state, and exact validation totals.
+- Independent final schema/requirements and security audits found no blocker
+  and no release-receipt bypass; both rechecked the tier and fail-closed mutant
+  surfaces.
 
 ### Next
 
-- Run all remaining canonical/focused/full checks, update this ledger and
-  `FINAL-REPORT.md`, force-with-lease push the rebased branch, and update PR
-  #461's description without merging.
+- Force-with-lease push the rebased branch, update PR #461's description,
+  verify its remote head/draft/unmerged state, and record publication here.
