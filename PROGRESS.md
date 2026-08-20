@@ -220,9 +220,9 @@
   and unmerged.
 - Rebased onto `origin/main` at
   `dd4ec472acd711c6481c381c20bcce034f3ced6b`.
-- Phase: implementation, certificate regeneration, validation, and final
-  report complete; guarded branch publication and PR description update
-  remain.
+- Phase: local implementation, certificate regeneration, validation, and final
+  report complete. Publication is externally blocked: neither terminal Git nor
+  the connected GitHub write surface can update the branch or PR.
 - Output report: `FINAL-REPORT.md`.
 
 ### Done
@@ -307,8 +307,16 @@
 - Independent final schema/requirements and security audits found no blocker
   and no release-receipt bypass; both rechecked the tier and fail-closed mutant
   surfaces.
+- Attempted the exact force-with-lease push twice; both attempts failed before
+  authentication because terminal Git cannot resolve `github.com`.
+- Attempted connected GitHub publication. A harmless blob capability probe and
+  the authorized PR-description update both returned `user cancelled MCP tool
+  call` before changing remote state.
+- Re-read PR #461 after both failures: it remains open, draft, unmerged, and
+  unchanged at remote head `f4ffd1b2d349757dac88ead1b0adc86d0b4ea865`.
 
 ### Next
 
-- Force-with-lease push the rebased branch, update PR #461's description,
-  verify its remote head/draft/unmerged state, and record publication here.
+- A maintainer with working GitHub transport runs the guarded push recorded in
+  `FINAL-REPORT.md`, replaces PR #461's description with the report's tier/DK/
+  schema/mutant/test summary, and leaves the PR draft and unmerged.

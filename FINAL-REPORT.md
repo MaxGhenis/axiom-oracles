@@ -166,10 +166,29 @@ assets.
 
 ## Publication and handoff
 
-The publication target is the existing draft PR #461 on branch
-`autogo/executable-producer-rebuild`. Rebase publication requires a guarded
-force-with-lease update. The PR must remain unmerged because the new workflow
-still requires the repository's cross-family signing/CI review and maintainer
+The local reconciliation is complete on
+`autogo/executable-producer-rebuild`, but publication is externally blocked.
+Two exact guarded pushes failed before authentication because terminal Git
+could not resolve `github.com`. The connected GitHub interface then returned
+`user cancelled MCP tool call` for both a harmless blob capability probe and
+the authorized PR-description update. Neither connector attempt created an
+object or changed PR metadata.
+
+A final read confirmed PR #461 remains open, draft, unmerged, and unchanged at
+remote head `f4ffd1b2d349757dac88ead1b0adc86d0b4ea865`. The rebased local history
+cannot be published through either available transport in this environment.
+A maintainer can publish it from this exact worktree with the same lease guard:
+
+```bash
+git push \
+  --force-with-lease=refs/heads/autogo/executable-producer-rebuild:f4ffd1b2d349757dac88ead1b0adc86d0b4ea865 \
+  origin HEAD:refs/heads/autogo/executable-producer-rebuild
+```
+
+The PR description should then be replaced with the tier definitions, DK
+registry result, shared-schema contract, requested mutants, and test totals in
+this report. The PR must remain unmerged because the new workflow still
+requires the repository's cross-family signing/CI review and maintainer
 approval.
 
 After the workflow lands unchanged on `main`, a maintainer must dispatch it,
