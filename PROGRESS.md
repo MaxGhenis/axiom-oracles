@@ -220,9 +220,8 @@
   and unmerged.
 - Rebased onto `origin/main` at
   `dd4ec472acd711c6481c381c20bcce034f3ced6b`.
-- Phase: rebase, registry verification, tier definitions, shared schema, both
-  producer migrations, and certifier tier policy complete; regeneration, full
-  validation, report, and publication remain.
+- Phase: implementation and certificate regeneration complete; the full test
+  battery, final report, push, and PR description update remain.
 - Output report: `FINAL-REPORT.md`.
 
 ### Done
@@ -282,13 +281,19 @@
 - Added certifier integration coverage for DK/legacy dispatch, missing release
   evidence, a real source receipt at a release-required consumer, absent tier,
   certificate-owned golden values, and a fully authenticated receipt. Six
-  focused tests pass; the 210-test certification-mutant battery has one
-  expected generated-certificate drift pending regeneration and no logic
+  focused tests pass. Before regeneration, the 210-test certification-mutant
+  battery had only the expected generated-certificate drift and no logic
   failure.
+- Regenerated every program certificate from the new registry policy and
+  passed `scripts/certify.py --check`. DK now records accepted
+  `source_reproduction` evidence and remains certified yes. CO SNAP replaces
+  attested executable prose with computed `release_receipt` policy and remains
+  honestly false because no receipt/bundle/allowlist evidence pair is
+  committed; the stable blocker is `executable: receipt: file does not exist`.
+  The 210-test certification-mutant battery now passes after regeneration.
 
 ### Next
 
-- Regenerate certificates, rerun the certification-mutant battery and all
-  canonical/focused/full checks, update this ledger and `FINAL-REPORT.md`,
-  force-with-lease push the rebased branch, and update PR #461's description
-  without merging.
+- Run all remaining canonical/focused/full checks, update this ledger and
+  `FINAL-REPORT.md`, force-with-lease push the rebased branch, and update PR
+  #461's description without merging.
