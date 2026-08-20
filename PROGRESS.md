@@ -220,8 +220,9 @@
   and unmerged.
 - Rebased onto `origin/main` at
   `dd4ec472acd711c6481c381c20bcce034f3ced6b`.
-- Phase: rebase and consumer mapping complete; tier schema, documentation,
-  validator policy, mutants, regeneration, and publication remain.
+- Phase: rebase, registry verification, tier definitions, and shared schema
+  complete; producer migration, consumer policy, mutants, regeneration, and
+  publication remain.
 - Output report: `FINAL-REPORT.md`.
 
 ### Done
@@ -244,11 +245,18 @@
   has neither `programs/` nor `artifacts/` and has no publication workflow; the
   archived registry contains only `uk/`. DK's current compile-from-source and
   ten-case replay is therefore honestly `source_reproduction` today.
+- Added `certificates/executable/receipt.schema.json` as the exact v2
+  discriminated union for `source_reproduction` and `release_receipt`, plus a
+  shared fail-closed envelope loader with a raw-byte schema digest.
+- Wrote `docs/executable-tiers.md`: source reproduction is allowed only when no
+  published artifact exists; release receipt is required when one does, and
+  consumer-owned policy—not receipt self-description—selects the tier.
+- Added six schema/envelope tests covering both tiers, missing tier, a source
+  receipt under release-required policy, and cross-tier field smuggling. All
+  six pass; Ruff, Python compilation, JSON parsing, and whitespace checks pass.
 
 ### Next
 
-- Add the shared tier-discriminated receipt schema and require a top-level
-  `tier` of `source_reproduction` or `release_receipt`.
 - Migrate DK and CO receipts/producers and make `scripts/certify.py` enforce
   registry-owned `required_tier` policy without weakening producer validators.
 - Add the requested tier/checksum mutants, write `docs/executable-tiers.md`,
