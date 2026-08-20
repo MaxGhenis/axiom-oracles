@@ -162,7 +162,7 @@
     "repo": "TheAxiomFoundation/rulespec-dk",
     "sha": "9a9469edbbc4829847698cd0adf218771120b9cd"
   },
-  "schema": "axiom_oracles.executable_reproduction.v1",
+  "schema": "axiom_oracles.executable_receipt.v2",
   "source_reports": [
     {
       "path": "dashboard/public/data/axiom-euromod-dk-child-youth-benefit.json",
@@ -184,5 +184,6 @@
     "executable": true,
     "matched_case_count": 10,
     "program_count": 2
-  }
+  },
+  "tier": "source_reproduction"
 }

@@ -220,9 +220,9 @@
   and unmerged.
 - Rebased onto `origin/main` at
   `dd4ec472acd711c6481c381c20bcce034f3ced6b`.
-- Phase: rebase, registry verification, tier definitions, and shared schema
-  complete; producer migration, consumer policy, mutants, regeneration, and
-  publication remain.
+- Phase: rebase, registry verification, tier definitions, shared schema, and
+  DK source-tier migration complete; release-tier migration, consumer policy,
+  regeneration, full validation, and publication remain.
 - Output report: `FINAL-REPORT.md`.
 
 ### Done
@@ -254,10 +254,17 @@
 - Added six schema/envelope tests covering both tiers, missing tier, a source
   receipt under release-required policy, and cross-tier field smuggling. All
   six pass; Ruff, Python compilation, JSON parsing, and whitespace checks pass.
+- Migrated DK's producer and committed receipt from its producer-specific v1
+  shape to shared `axiom_oracles.executable_receipt.v2` with the mandatory
+  `source_reproduction` discriminator. Its existing producer validator still
+  re-derives every deep source, engine-pin, compiled-artifact, and case claim.
+- Added DK-specific mutants proving the real committed source receipt cannot
+  satisfy a `release_receipt` policy and that deleting `tier` fails closed.
+  The combined schema and DK reproduction battery passes: 13 tests.
 
 ### Next
 
-- Migrate DK and CO receipts/producers and make `scripts/certify.py` enforce
+- Migrate CO's producer/validator and make `scripts/certify.py` enforce
   registry-owned `required_tier` policy without weakening producer validators.
 - Add the requested tier/checksum mutants, write `docs/executable-tiers.md`,
   regenerate certificates, run focused and full tests, update this ledger and

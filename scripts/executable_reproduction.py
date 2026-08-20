@@ -43,11 +43,17 @@ if str(REPO_ROOT) not in sys.path:
 from axiom_oracles.adapters.axiom.runner import AxiomRulesRunner  # noqa: E402
 from axiom_oracles.core.case import Case  # noqa: E402
 from axiom_oracles.evidence import validate_suite_evidence  # noqa: E402
+from axiom_oracles.executable_receipt_schema import (  # noqa: E402
+    RECEIPT_SCHEMA,
+    SOURCE_REPRODUCTION,
+    validate_receipt_envelope,
+)
 from axiom_oracles.suites.dk_child_youth_benefit import (  # noqa: E402
     dk_child_youth_benefit_couple_cases,
 )
 
-SCHEMA = "axiom_oracles.executable_reproduction.v1"
+SCHEMA = RECEIPT_SCHEMA
+TIER = SOURCE_REPRODUCTION
 PROGRAM = "dk/boerne-og-ungeydelse"
 GENERATED_BY = "scripts/executable_reproduction.py"
 EXECUTION_PERIOD = "2025-06-01"
@@ -723,6 +729,7 @@ def build_reproduction(
     engine_matches_pin = binary_sha == configured_pin
     document = {
         "schema": SCHEMA,
+        "tier": TIER,
         "program": PROGRAM,
         "generated_by": GENERATED_BY,
         "execution_period": EXECUTION_PERIOD,
@@ -762,7 +769,12 @@ def validate_artifact(
     """
 
     _require(isinstance(document, dict), "executable artifact must be a mapping")
-    _require(document.get("schema") == SCHEMA, f"schema must be {SCHEMA}")
+    validate_receipt_envelope(
+        document,
+        required_tier=TIER,
+        repo_root=repo_root,
+        label="executable artifact",
+    )
     _require(document.get("program") == PROGRAM, f"program must be {PROGRAM}")
     _require(
         document.get("generated_by") == GENERATED_BY,

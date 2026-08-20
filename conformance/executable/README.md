@@ -1,9 +1,15 @@
 # Computed executable evidence
 
-Executable receipts use `axiom_oracles.executable_reproduction.v1`. A program
-certificate accepts one only through the producer named in `scripts/certify.py`;
-the producer must validate committed artifact bytes, requests, golden outputs,
-and the bound transcript and must return a re-derived `executable` Boolean.
+Tiered executable receipts use `axiom_oracles.executable_receipt.v2`; see
+[`docs/executable-tiers.md`](../../docs/executable-tiers.md). The DK receipt is
+`source_reproduction`: its producer recompiles from the exact RuleSpec commit
+and replays the committed cases, but does not claim that those temporary bytes
+are a published artifact. A program certificate accepts a receipt only through
+the producer and consumer-owned tier policy named in `scripts/certify.py`; the
+producer must re-derive its `executable` Boolean.
+
+The NZ and tariff reproduction receipts retain their producer-specific legacy
+schemas until they are migrated to the shared tier envelope.
 
 The NZ receipt commits the exact 703,295-byte comparison composition whose
 SHA-256 was recorded by the original harness. Its request set is the 19 engine

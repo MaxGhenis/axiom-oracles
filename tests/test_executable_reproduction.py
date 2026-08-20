@@ -9,6 +9,13 @@ from pathlib import Path
 
 import pytest
 
+from axiom_oracles.executable_receipt_schema import (
+    RECEIPT_SCHEMA,
+    RELEASE_RECEIPT,
+    SOURCE_REPRODUCTION,
+    validate_receipt_envelope,
+)
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SCRIPT = REPO_ROOT / "scripts" / "executable_reproduction.py"
 ARTIFACT = REPO_ROOT / "conformance" / "executable" / "dk-boerne-og-ungeydelse.json"
@@ -33,7 +40,29 @@ def test_committed_artifact_validates_hermetically():
         "engine_binary_matches_pin": True,
         "executable": True,
     }
+    assert document["schema"] == RECEIPT_SCHEMA
+    assert document["tier"] == SOURCE_REPRODUCTION
     assert document["rulespec"]["ref"] == document["rulespec"]["sha"]
+
+
+def test_committed_source_reproduction_does_not_satisfy_release_policy():
+    document = json.loads(ARTIFACT.read_text())
+
+    with pytest.raises(ValueError, match="does not satisfy required tier"):
+        validate_receipt_envelope(
+            document,
+            required_tier=RELEASE_RECEIPT,
+            repo_root=REPO_ROOT,
+        )
+
+
+def test_hermetic_validator_rejects_absent_tier():
+    module = _load_script()
+    document = json.loads(ARTIFACT.read_text())
+    del document["tier"]
+
+    with pytest.raises(ValueError, match="missing required key 'tier'"):
+        module.validate_artifact(document)
 
 
 def test_hermetic_validator_rejects_a_mutable_rulespec_ref():
