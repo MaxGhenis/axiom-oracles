@@ -25,9 +25,18 @@ from pathlib import Path
 from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from axiom_oracles.executable_receipt_schema import (  # noqa: E402
+    RECEIPT_SCHEMA,
+    RELEASE_RECEIPT,
+    ReceiptSchemaError,
+    load_receipt_schema,
+)
+
 MANIFEST_PATH = REPO_ROOT / "certificates/executable/us-co-snap/manifest.json"
 WORK_DIR = Path(".executable-receipt-work")
-RECEIPT_SCHEMA = "axiom_oracles.executable_receipt.v1"
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 FORBIDDEN_CREDENTIALS = (
@@ -70,6 +79,37 @@ def _repo_path(root: Path, value: str) -> Path:
     if resolved != root and root not in resolved.parents:
         raise ProducerError(f"repository path escapes root: {value!r}")
     return resolved
+
+
+def _validate_receipt_schema_contract(
+    root: Path, manifest: dict[str, Any]
+) -> None:
+    """Prove the producer is using the manifest's release-tier schema pin."""
+
+    if manifest.get("required_tier") != RELEASE_RECEIPT:
+        raise ProducerError(
+            f"manifest required_tier must be {RELEASE_RECEIPT!r}"
+        )
+    schema = manifest.get("receipt_schema")
+    if type(schema) is not dict or set(schema) != {"path", "sha256"}:
+        raise ProducerError("manifest receipt_schema must contain only path and sha256")
+    path = schema.get("path")
+    digest = schema.get("sha256")
+    if type(path) is not str or not path:
+        raise ProducerError("manifest receipt_schema.path must be a nonempty string")
+    if type(digest) is not str or SHA256_RE.fullmatch(digest) is None:
+        raise ProducerError(
+            "manifest receipt_schema.sha256 must be a lowercase 64-hex SHA-256"
+        )
+    _repo_path(root, path)
+    try:
+        load_receipt_schema(
+            repo_root=root,
+            schema_path=path,
+            expected_sha256=digest,
+        )
+    except ReceiptSchemaError as error:
+        raise ProducerError(str(error)) from error
 
 
 def _positive_int(env: dict[str, str], name: str) -> int:
@@ -295,6 +335,7 @@ def produce() -> Path:
     environment = dict(os.environ)
     manifest = _load_json(MANIFEST_PATH)
     provenance = _workflow_provenance(manifest, environment)
+    _validate_receipt_schema_contract(repo_root, manifest)
 
     if (platform.system(), platform.machine()) != ("Linux", "x86_64"):
         raise ProducerError("the governed producer requires Linux x86_64")
@@ -393,6 +434,7 @@ def produce() -> Path:
 
         receipt = {
             "schema": RECEIPT_SCHEMA,
+            "tier": RELEASE_RECEIPT,
             "program": manifest["program"],
             "engine": {
                 "repository": release["repository"],

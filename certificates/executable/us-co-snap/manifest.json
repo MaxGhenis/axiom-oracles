@@ -1,6 +1,11 @@
 {
   "schema": "axiom_oracles.executable_manifest.v1",
   "program": "us-co/snap",
+  "receipt_schema": {
+    "path": "certificates/executable/receipt.schema.json",
+    "sha256": "4035fb618468a9c1bca4da0d39fd06912c969c7903e501f19b15551c92bf0ae2"
+  },
+  "required_tier": "release_receipt",
   "receipt_path": "certificates/executable/us-co-snap/receipt.json",
   "attestation": {
     "path": "certificates/executable/us-co-snap/receipt.sigstore.json",

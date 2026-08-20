@@ -25,7 +25,14 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-RECEIPT_SCHEMA = "axiom_oracles.executable_receipt.v1"
+from axiom_oracles.executable_receipt_schema import (
+    RECEIPT_SCHEMA,
+    RELEASE_RECEIPT,
+    ReceiptSchemaError,
+    load_receipt_schema,
+    validate_receipt_envelope,
+)
+
 EXECUTABLE_MANIFEST_SCHEMA = "axiom_oracles.executable_manifest.v1"
 ENGINE_RELEASE_MANIFEST_SCHEMA = "axiom_oracles.engine_release_manifest.v1"
 WORKFLOW_ALLOWLIST_SCHEMA = "axiom_oracles.executable_workflow_allowlist.v1"
@@ -52,6 +59,9 @@ class ReceiptValidation:
 @dataclass(frozen=True, slots=True)
 class _Contract:
     program: str
+    receipt_schema_path: str
+    receipt_schema_sha256: str
+    required_tier: str
     receipt_path: str
     attestation_path: str
     attestation_predicate_type: str
@@ -88,8 +98,9 @@ def validate_executable_receipt(
     repo_root: str | Path | None = None,
     manifest_path: str | Path = DEFAULT_MANIFEST_PATH,
     expected_outputs: dict[str, Any] | None = None,
+    required_tier: str = RELEASE_RECEIPT,
 ) -> ReceiptValidation:
-    """Validate a v1 executable receipt against committed trust roots.
+    """Validate a release-tier executable receipt against committed trust roots.
 
     ``receipt`` may be a path.  An already-parsed JSON object is accepted only
     for fail-closed structural diagnostics: it can never validate because its
@@ -101,6 +112,10 @@ def validate_executable_receipt(
     ``expected_outputs`` is an optional second pin supplied by a certificate
     consumer.  When present, it must exactly equal the expectations in the
     hash-bound output bindings file; it cannot override them.
+
+    ``required_tier`` is a second, consumer-owned equality pin.  It must match
+    the release tier required by the committed executable manifest and cannot
+    weaken that manifest policy.
     """
 
     failures: list[str] = []
@@ -110,6 +125,7 @@ def validate_executable_receipt(
             repo_root=Path(repo_root) if repo_root is not None else DEFAULT_REPO_ROOT,
             manifest_path=manifest_path,
             expected_outputs=expected_outputs,
+            required_tier=required_tier,
             failures=failures,
         )
     except Exception as error:  # pragma: no cover - last-resort fail-closed boundary
@@ -126,6 +142,7 @@ def _validate_executable_receipt(
     repo_root: Path,
     manifest_path: str | Path,
     expected_outputs: dict[str, Any] | None,
+    required_tier: str,
     failures: list[str],
 ) -> ReceiptValidation:
     repo_root = repo_root.resolve()
@@ -150,6 +167,11 @@ def _validate_executable_receipt(
         failures=failures,
     )
     if contract is None:
+        return ReceiptValidation(False, tuple(failures))
+    if type(required_tier) is not str or required_tier != contract.required_tier:
+        failures.append(
+            "required_tier: does not exactly match manifest.required_tier"
+        )
         return ReceiptValidation(False, tuple(failures))
 
     receipt_sha256: str | None = None
@@ -183,6 +205,18 @@ def _validate_executable_receipt(
         receipt_value = None
 
     if receipt_value is None:
+        return ReceiptValidation(False, tuple(failures), receipt_sha256=receipt_sha256)
+
+    try:
+        tier = validate_receipt_envelope(
+            receipt_value,
+            required_tier=contract.required_tier,
+            repo_root=repo_root,
+            schema_path=contract.receipt_schema_path,
+            expected_schema_sha256=contract.receipt_schema_sha256,
+        )
+    except ReceiptSchemaError as error:
+        failures.append(str(error))
         return ReceiptValidation(False, tuple(failures), receipt_sha256=receipt_sha256)
 
     _validate_receipt(receipt_value, contract, failures)
@@ -223,6 +257,7 @@ def _validate_executable_receipt(
 
     evidence = {
         "schema": RECEIPT_SCHEMA,
+        "tier": tier,
         "program": contract.program,
         "engine": {
             "repository": contract.engine_repository,
@@ -286,6 +321,8 @@ def _build_contract(
         (
             "schema",
             "program",
+            "receipt_schema",
+            "required_tier",
             "receipt_path",
             "attestation",
             "engine",
@@ -308,6 +345,39 @@ def _build_contract(
         failures,
     )
     program = _string_field(manifest_object, "program", "manifest.program", failures)
+    receipt_schema = _exact_object(
+        manifest_object.get("receipt_schema"),
+        ("path", "sha256"),
+        (),
+        "manifest.receipt_schema",
+        failures,
+    )
+    receipt_schema_path: str | None = None
+    receipt_schema_sha256: str | None = None
+    if receipt_schema is not None:
+        receipt_schema_path = _string_field(
+            receipt_schema,
+            "path",
+            "manifest.receipt_schema.path",
+            failures,
+        )
+        receipt_schema_sha256 = _sha_field(
+            receipt_schema,
+            "sha256",
+            "manifest.receipt_schema.sha256",
+            failures,
+        )
+    required_tier = _string_field(
+        manifest_object,
+        "required_tier",
+        "manifest.required_tier",
+        failures,
+    )
+    if required_tier is not None and required_tier != RELEASE_RECEIPT:
+        failures.append(
+            "manifest.required_tier: expected "
+            f"{RELEASE_RECEIPT!r}, got {required_tier!r}"
+        )
     receipt_path = _string_field(
         manifest_object, "receipt_path", "manifest.receipt_path", failures
     )
@@ -478,6 +548,7 @@ def _build_contract(
     workflow_ref = _string_field(workflow, "ref", "manifest.workflow.ref", failures)
 
     declared_paths = (
+        (receipt_schema_path, "manifest.receipt_schema.path"),
         (receipt_path, "manifest.receipt_path"),
         (attestation_path, "manifest.attestation.path"),
         (
@@ -498,6 +569,16 @@ def _build_contract(
                 failures,
                 allow_absolute=False,
             )
+
+    if receipt_schema_path is not None and receipt_schema_sha256 is not None:
+        try:
+            load_receipt_schema(
+                repo_root=repo_root,
+                schema_path=receipt_schema_path,
+                expected_sha256=receipt_schema_sha256,
+            )
+        except ReceiptSchemaError as error:
+            failures.append(str(error))
 
     engine_manifest = _load_declared_json(
         repo_root,
@@ -587,6 +668,9 @@ def _build_contract(
 
     required_values = (
         program,
+        receipt_schema_path,
+        receipt_schema_sha256,
+        required_tier,
         receipt_path,
         attestation_path,
         attestation_predicate_type,
@@ -621,6 +705,9 @@ def _build_contract(
 
     return _Contract(
         program=program,
+        receipt_schema_path=receipt_schema_path,
+        receipt_schema_sha256=receipt_schema_sha256,
+        required_tier=required_tier,
         receipt_path=receipt_path,
         attestation_path=attestation_path,
         attestation_predicate_type=attestation_predicate_type,
@@ -908,6 +995,7 @@ def _validate_receipt(
         receipt,
         (
             "schema",
+            "tier",
             "program",
             "engine",
             "artifact",
@@ -923,6 +1011,13 @@ def _validate_receipt(
     if root is None:
         return
     _literal_string(root, "schema", RECEIPT_SCHEMA, "receipt.schema", failures)
+    _matching_string(
+        root,
+        "tier",
+        contract.required_tier,
+        "receipt.tier",
+        failures,
+    )
     _matching_string(root, "program", contract.program, "receipt.program", failures)
 
     engine = _exact_object(

@@ -18,6 +18,10 @@ from axiom_oracles.executable_receipt import (
     RECEIPT_SCHEMA,
     validate_executable_receipt,
 )
+from axiom_oracles.executable_receipt_schema import (
+    RELEASE_RECEIPT,
+    SOURCE_REPRODUCTION,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CERTIFICATES = Path("certificates/executable")
@@ -131,6 +135,7 @@ def valid_receipt(receipt_root: Path) -> dict:
     ]
     return {
         "schema": RECEIPT_SCHEMA,
+        "tier": RELEASE_RECEIPT,
         "program": manifest["program"],
         "engine": {
             "repository": release["repository"],
@@ -327,6 +332,7 @@ def test_valid_receipt_from_committed_output_path(
     assert result.receipt_sha256 is not None
     assert result.attestation_sha256 is not None
     assert result.evidence is not None
+    assert result.evidence["tier"] == RELEASE_RECEIPT
     assert len(calls) == 1
     assert result.evidence["golden"]["outputs"] == {
         "snap_benefit_amount": 478,
@@ -352,6 +358,44 @@ def test_wrong_engine_checksum_is_rejected(receipt_root: Path, valid_receipt: di
     assert result.failures == (
         "receipt.engine.sha256: checksum is not the pinned asset member "
         "for the declared release and target",
+    )
+
+
+def test_missing_tier_is_rejected(receipt_root: Path, valid_receipt: dict):
+    del valid_receipt["tier"]
+
+    result = _validate(receipt_root, valid_receipt)
+
+    assert result.valid is False
+    assert result.failures == ("receipt: missing required key 'tier'",)
+
+
+def test_source_reproduction_tier_cannot_satisfy_release_policy(
+    receipt_root: Path, valid_receipt: dict
+):
+    valid_receipt["tier"] = SOURCE_REPRODUCTION
+
+    result = _validate(receipt_root, valid_receipt)
+
+    assert result.valid is False
+    assert result.failures == (
+        "receipt.tier: 'source_reproduction' does not satisfy required tier "
+        "'release_receipt'",
+    )
+
+
+def test_consumer_cannot_weaken_manifest_release_policy(
+    receipt_root: Path, valid_receipt: dict
+):
+    result = _validate(
+        receipt_root,
+        valid_receipt,
+        required_tier=SOURCE_REPRODUCTION,
+    )
+
+    assert result.valid is False
+    assert result.failures == (
+        "required_tier: does not exactly match manifest.required_tier",
     )
 
 
@@ -586,6 +630,20 @@ def test_raw_output_binding_bytes_are_rehashed(receipt_root: Path, valid_receipt
     assert result.failures == (
         "golden output bindings: raw bytes sha256 does not match "
         "manifest.golden.outputs_sha256",
+    )
+
+
+def test_raw_receipt_schema_bytes_are_rehashed(
+    receipt_root: Path, valid_receipt: dict
+):
+    schema = receipt_root / CERTIFICATES / "receipt.schema.json"
+    schema.write_bytes(schema.read_bytes() + b"\n")
+
+    result = _validate(receipt_root, valid_receipt)
+
+    assert result.valid is False
+    assert result.failures == (
+        "receipt schema: raw bytes do not match the configured SHA-256",
     )
 
 

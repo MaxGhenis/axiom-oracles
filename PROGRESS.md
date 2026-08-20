@@ -221,8 +221,8 @@
 - Rebased onto `origin/main` at
   `dd4ec472acd711c6481c381c20bcce034f3ced6b`.
 - Phase: rebase, registry verification, tier definitions, shared schema, and
-  DK source-tier migration complete; release-tier migration, consumer policy,
-  regeneration, full validation, and publication remain.
+  both producer migrations complete; certifier policy, regeneration, full
+  validation, and publication remain.
 - Output report: `FINAL-REPORT.md`.
 
 ### Done
@@ -261,11 +261,21 @@
 - Added DK-specific mutants proving the real committed source receipt cannot
   satisfy a `release_receipt` policy and that deleting `tier` fails closed.
   The combined schema and DK reproduction battery passes: 13 tests.
+- Migrated the CO producer and validator to the shared v2 `release_receipt`
+  branch. The committed release contract now owns the required tier and
+  hash-binds the raw shared-schema bytes; the isolated signing job re-checks
+  both discriminator fields before signing.
+- Preserved the release receipt's strict release-manifest engine membership,
+  published-artifact binding, exact nine-command transcript, golden byte/type
+  checks, and exact-byte Sigstore verification. Added tier, schema-drift, and
+  anti-downgrade mutants alongside the existing wrong-engine-checksum mutant.
+  The release producer/validator battery passes: 87 tests; actionlint, Ruff,
+  Python compilation, schema-pin comparison, and whitespace checks pass.
 
 ### Next
 
-- Migrate CO's producer/validator and make `scripts/certify.py` enforce
-  registry-owned `required_tier` policy without weakening producer validators.
+- Make `scripts/certify.py` enforce registry-owned `required_tier` policy
+  without weakening producer validators.
 - Add the requested tier/checksum mutants, write `docs/executable-tiers.md`,
   regenerate certificates, run focused and full tests, update this ledger and
   `FINAL-REPORT.md`, force-with-lease push the rebased branch, and update PR

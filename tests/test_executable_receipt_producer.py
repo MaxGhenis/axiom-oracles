@@ -215,6 +215,10 @@ def test_workflow_separates_secretless_execution_from_signing() -> None:
     assert "id-token: write" in sign_job
     assert "attestations: write" in sign_job
     assert "scripts/produce_executable_receipt.py" not in sign_job
+    assert "'.schema'" in sign_job
+    assert "axiom_oracles.executable_receipt.v2" in sign_job
+    assert "'.tier'" in sign_job
+    assert '"release_receipt"' in sign_job
     assert "actions/attest-build-provenance@" in sign_job
     assert "receipt.sigstore.json" in sign_job
     assert "${{ secrets." not in workflow
@@ -473,6 +477,7 @@ def governed_case(
     )
     receipt_path = fixture_dir / "receipt.json"
     manifest_path = fixture_dir / "manifest.json"
+    schema_path = repo_root / "certificates" / "executable" / "receipt.schema.json"
     input_path = fixture_dir / "golden-request.json"
     outputs_path = fixture_dir / "golden-outputs.json"
 
@@ -492,6 +497,10 @@ def governed_case(
     ).encode()
     input_path.write_bytes(input_bytes)
     outputs_path.write_bytes(outputs_bytes)
+    schema_bytes = (
+        ROOT / "certificates" / "executable" / "receipt.schema.json"
+    ).read_bytes()
+    schema_path.write_bytes(schema_bytes)
 
     engine_archive = b"pinned released engine archive"
     artifact_bytes = b'{"compiled_program": "published"}\n'
@@ -538,6 +547,11 @@ def governed_case(
         json.dumps(
             {
                 "program": "us-co/snap",
+                "receipt_schema": {
+                    "path": "certificates/executable/receipt.schema.json",
+                    "sha256": _sha256(schema_bytes),
+                },
+                "required_tier": "release_receipt",
                 "receipt_path": (
                     "certificates/executable/us-co-snap/receipt.json"
                 ),
@@ -682,6 +696,7 @@ def test_mocked_nine_command_stranger_path_emits_complete_receipt(
     receipt = json.loads(output_path.read_text())
     assert set(receipt) == {
         "schema",
+        "tier",
         "program",
         "engine",
         "artifact",
@@ -690,7 +705,8 @@ def test_mocked_nine_command_stranger_path_emits_complete_receipt(
         "timestamp",
         "workflow",
     }
-    assert receipt["schema"] == "axiom_oracles.executable_receipt.v1"
+    assert receipt["schema"] == "axiom_oracles.executable_receipt.v2"
+    assert receipt["tier"] == "release_receipt"
     assert receipt["program"] == "us-co/snap"
     assert receipt["engine"] == {
         "repository": "TheAxiomFoundation/axiom-rules-engine",
@@ -754,6 +770,37 @@ def test_mocked_nine_command_stranger_path_emits_complete_receipt(
         governed_case.input_bytes
     )
     assert all(call["cwd"] == governed_case.repo_root for call in calls)
+    assert not (governed_case.repo_root / producer.WORK_DIR).exists()
+
+
+def test_producer_rejects_receipt_schema_pin_drift(
+    governed_case: SimpleNamespace,
+) -> None:
+    manifest = json.loads(governed_case.manifest_path.read_text())
+    manifest["receipt_schema"]["sha256"] = "0" * 64
+    governed_case.manifest_path.write_text(json.dumps(manifest))
+
+    with pytest.raises(
+        producer.ProducerError,
+        match="receipt schema: raw bytes do not match the configured SHA-256",
+    ):
+        producer.produce()
+
+    assert not governed_case.receipt_path.exists()
+    assert not (governed_case.repo_root / producer.WORK_DIR).exists()
+
+
+def test_producer_rejects_nonrelease_manifest_tier(
+    governed_case: SimpleNamespace,
+) -> None:
+    manifest = json.loads(governed_case.manifest_path.read_text())
+    manifest["required_tier"] = "source_reproduction"
+    governed_case.manifest_path.write_text(json.dumps(manifest))
+
+    with pytest.raises(producer.ProducerError, match="required_tier"):
+        producer.produce()
+
+    assert not governed_case.receipt_path.exists()
     assert not (governed_case.repo_root / producer.WORK_DIR).exists()
 
 

@@ -77,6 +77,8 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           SOURCE_REF: ${{ github.ref }}
         run: |
+          test "$(jq -r '.schema' "${RECEIPT}")" = "axiom_oracles.executable_receipt.v2"
+          test "$(jq -r '.tier' "${RECEIPT}")" = "release_receipt"
           test "$(jq -r '.workflow.repository' "${RECEIPT}")" = "${SOURCE_REPOSITORY}"
           test "$(jq -r '.workflow.repository_id' "${RECEIPT}")" = "${SOURCE_REPOSITORY_ID}"
           test "$(jq -r '.workflow.sha' "${RECEIPT}")" = "${WORKFLOW_SHA}"

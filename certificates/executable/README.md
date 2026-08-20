@@ -11,8 +11,9 @@ re-derived. A JSON document by itself is never evidence.
   and full archive SHA-256 values.
 - `us-co-snap/manifest.json` pins the published program-artifact release,
   release-manifest hash, artifact hash, golden request and output-binding
-  bytes, receipt and bundle paths, workflow identity, immutable repository ID,
-  and the Sigstore trusted-root hash.
+  bytes, the shared receipt-schema bytes and required `release_receipt` tier,
+  receipt and bundle paths, workflow identity, immutable repository ID, and the
+  Sigstore trusted-root hash.
 - `sigstore-public-good-trusted-root.jsonl` is the public-good Sigstore root
   used for offline verification. It was taken from the Sigstore TUF
   `trusted_root.json` target on 2026-07-29, serialized as one JSONL record, and
@@ -40,8 +41,11 @@ re-derived. A JSON document by itself is never evidence.
    short-lived Sigstore identity, and uploads both the receipt and bundle as
    artifact `executable-receipt-us-co-snap`.
 
-The receipt schema is `axiom_oracles.executable_receipt.v1`:
+The receipt uses the `release_receipt` branch of
+`axiom_oracles.executable_receipt.v2`; the two-tier contract is defined in
+[`docs/executable-tiers.md`](../../docs/executable-tiers.md):
 
+- `tier`: exactly `release_receipt`
 - `program`
 - `engine`: repository, release, semantic version, target, asset, archive
   SHA-256
